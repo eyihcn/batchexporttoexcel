@@ -61,11 +61,11 @@ public class MultiThreadExportService<T, D> {
 	}
 
 	/**
-	 * 不使用反射，自己实现DateProvider接口，实现数据查询 默认的pageSize为5000，一个sheet10000条记录,
-	 * 传入的rowDataHandler 和 dataProvider 将会被多线程调用，注意线程安全的问题
+	 * 不使用反射，自己实现DateProvider接口，一页查询的数据量和每个sheet的容量采用默认值 ,
+	 * 传入的rowDataHandler 和  dataProvider 将会被多线程调用，注意线程安全的问题
 	 */
-	public MultiThreadExportService(int totalPageSize, String[] headerRowData, DataProvider<T, D> dataProvider, RowDataHandler<T> rowDataHandler) {
-		this(totalPageSize, DEFAULT_PAGE_SIZE, DEFAULT_ROW_SIZE_OF_PERSHEET, false, headerRowData, null, null, null, null, dataProvider, rowDataHandler);
+	public MultiThreadExportService(int totalPageSize, String[] headerRowData, Class<D> daoClass, DataProvider<T, D> dataProvider, RowDataHandler<T> rowDataHandler) {
+		this(totalPageSize, DEFAULT_PAGE_SIZE, DEFAULT_ROW_SIZE_OF_PERSHEET, false, headerRowData, daoClass, null, null, null, dataProvider, rowDataHandler);
 	}
 
 	/**
@@ -75,7 +75,8 @@ public class MultiThreadExportService<T, D> {
 	 *            一页查询数
 	 * @param rowSizeOfPersheet
 	 *            一个sheet有多少行记录
-	 * @param useReflect
+	 * @param useReflectToQuery
+	 *            是否使用反射查询数据
 	 * @param headerRowData
 	 *            标题
 	 * @param daoClass
@@ -90,7 +91,7 @@ public class MultiThreadExportService<T, D> {
 	 * @param rowDataHandler
 	 *            业务处理的实现，返回一行数据
 	 */
-	private MultiThreadExportService(int totalCounts, int pageSize, int rowSizeOfPersheet, boolean useReflect, String[] headerRowData, Class<D> daoClass, String queryMethodName,
+	private MultiThreadExportService(int totalCounts, int pageSize, int rowSizeOfPersheet, boolean useReflectToQuery, String[] headerRowData, Class<D> daoClass, String queryMethodName,
 			Map<String, Object> queryParam, Map<String, Object> sort, DataProvider<T, D> dataProvider, RowDataHandler<T> rowDataHandler) {
 		super();
 		if (totalCounts < 1 || pageSize < 0 || rowSizeOfPersheet < 0 || "".equals(queryMethodName)) {
@@ -100,14 +101,14 @@ public class MultiThreadExportService<T, D> {
 		this.totalCounts = totalCounts;
 		this.rowSizeOfPersheet = rowSizeOfPersheet;
 		this.headerRowData = headerRowData;
-		this.useReflect = useReflect;
+		this.useReflect = useReflectToQuery;
 		this.rowDataHandler = rowDataHandler;
 		sheetCounts = caculateSheetCounts(totalCounts, rowSizeOfPersheet);
 		// 每一个sheet分配一把锁
 		// this.sheetLocks = initSheetLocks(sheetCounts);
 
-		if (useReflect == true) {
-			this.daoClass = daoClass;
+		this.daoClass = daoClass;
+		if (useReflectToQuery == true) {
 			this.queryMethodName = queryMethodName;
 			this.queryParam = queryParam;
 			this.sort = sort;
