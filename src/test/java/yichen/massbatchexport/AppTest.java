@@ -90,15 +90,23 @@ public class AppTest  {
 			}
 		};
 		String exportFileName = "D:"+File.separator+"aa.xls";
-		new MultiThreadExportService<Person, Object>(totalPageSize, headerRowData, new DataProvider<Person>() {
+		new MultiThreadExportService<Person, PersonDao>(totalPageSize, headerRowData, PersonDao.class,new DataProvider<Person,PersonDao>() {
 
-			public List<Person> providerOnePageDage(int pageSize, int pageNumber) {
-				PersonDao p = new PersonDao();
+			public List<Person> providerOnePageDage(PersonDao dao, int pageSize, int pageNumber) {
 				Map pageNation = new HashMap();
 				pageNation.put("pageSize", pageSize);
 				pageNation.put("pageNumber", pageNumber);
-				return p.getPserons(null, null, pageNation);
+				return dao.getPserons(null, null, pageNation);
 			}
+
+//			public List<Person> providerOnePageDage(int pageSize, int pageNumber) {
+//				PersonDao p = new PersonDao();
+//				Map pageNation = new HashMap();
+//				pageNation.put("pageSize", pageSize);
+//				pageNation.put("pageNumber", pageNumber);
+//				return p.getPserons(null, null, pageNation);
+//			}
+			
 		}, rowDataHandler).setPageSize(pageSize).setRowSizeOfPersheet(rowSizeOfPersheet).export(exportFileName );
 //		public MultiThreadExportService(int totalPageSize, String[] headerRowData,
 //				String queryMethodName, Map<String, Object> queryParam,
